@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Highhat Scale Finder</title>
+<!-- เพิ่มฟอนต์ Cyberpunk จาก Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Rajdhani:wght@600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary: #00a8ff;
+            --primary-dark: #0097e6;
+            --dark: #1e272e;
+            --darker: #1a2228;
+            --light: #f5f6fa;
+            --gray: #dcdde1;
+            --success: #4cd137;
+            --warning: #e84118;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: var(--dark);
+            color: var(--light);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 900;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            text-align: center;
+            margin: 30px 0;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .card {
+            background-color: var(--darker);
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--primary);
+            border-radius: 5px;
+            background-color: var(--dark);
+            color: var(--light);
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--primary-dark);
+            box-shadow: 0 0 0 3px rgba(0, 168, 255, 0.3);
+        }
+
+        .notes-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-secondary {
+            background-color: #353b48;
+        }
+
+        .btn-secondary:hover {
+            background-color: #2f3640;
+        }
+
+        .btn-danger {
+            background-color: var(--warning);
+        }
+
+        .btn-danger:hover {
+            background-color: #c23616;
+        }
+
+        .btn-success {
+            background-color: var(--success);
+        }
+
+        .btn-success:hover {
+            background-color: #44bd32;
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: rgba(0, 168, 255, 0.1);
+            border-left: 4px solid var(--primary);
+            border-radius: 0 5px 5px 0;
+        }
+
+        .scale-name {
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .famous-songs {
+            margin-top: 20px;
+        }
+
+        .famous-songs h3 {
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+        }
+
+        .song-list {
+            list-style-type: none;
+        }
+
+        .song-list li {
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .song-list li:last-child {
+            border-bottom: none;
+        }
+
+        .song-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .song-actions button {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: var(--darker);
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5);
+            animation: modalFadeIn 0.3s ease;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            color: var(--gray);
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close-modal:hover {
+            color: var(--primary);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .saved-songs {
+            margin-top: 40px;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .search-container input {
+            flex-grow: 1;
+        }
+
+        .scale-filter {
+            margin-bottom: 20px;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: var(--dark);
+            color: var(--light);
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            border: 1px solid var(--primary);
+            font-size: 14px;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .notes-container {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .search-container {
+                flex-direction: column;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .notes-container {
+                grid-template-columns: 1fr;
+            }
+
+            .card {
+                padding: 15px;
+            }
+
+            .btn {
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 style="display: flex; align-items: center; 
+           font-family: 'Orbitron', 'Rajdhani', sans-serif;
+           text-transform: uppercase;
+           letter-spacing: 2px;
+           color: rgb(255, 255, 255);
+           text-shadow: 0 0 10px rgb(0, 68, 255), 
+                        0 0 20px rgb(25, 175, 175),
+                        0 0 30px rgba(0, 255, 255, 0.5);
+           position: relative;
+           padding: 10px 20px;">
+    <img src="Highhat.PNG" alt="Logo" 
+         style="height: 1.2em; 
+                margin-right: 15px;
+                filter: drop-shadow(0 0 5px rgb(0, 0, 0)) 
+                        hue-rotate(180deg);">
+    Highhat - Scale Finder
+</h1>
+        
+        <div class="card">
+            <h2>Find Your Scale</h2>
+            <div class="notes-container">
+                <div class="form-group">
+                    <label for="note1">Note 1</label>
+                    <select id="note1" class="note-select">
+                        <option value="">Select Note</option>
+                        <option value="C">C</option>
+                        <option value="C#">C#/Db</option>
+                        <option value="D">D</option>
+                        <option value="D#">D#/Eb</option>
+                        <option value="E">E</option>
+                        <option value="F">F</option>
+                        <option value="F#">F#/Gb</option>
+                        <option value="G">G</option>
+                        <option value="G#">G#/Ab</option>
+                        <option value="A">A</option>
+                        <option value="A#">A#/Bb</option>
+                        <option value="B">B</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="note2">Note 2</label>
+                    <select id="note2" class="note-select">
+                        <option value="">Select Note</option>
+                        <option value="C">C</option>
+                        <option value="C#">C#/Db</option>
+                        <option value="D">D</option>
+                        <option value="D#">D#/Eb</option>
+                        <option value="E">E</option>
+                        <option value="F">F</option>
+                        <option value="F#">F#/Gb</option>
+                        <option value="G">G</option>
+                        <option value="G#">G#/Ab</option>
+                        <option value="A">A</option>
+                        <option value="A#">A#/Bb</option>
+                        <option value="B">B</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="note3">Note 3</label>
+                    <select id="note3" class="note-select">
+                        <option value="">Select Note</option>
+                        <option value="C">C</option>
+                        <option value="C#">C#/Db</option>
+                        <option value="D">D</option>
+                        <option value="D#">D#/Eb</option>
+                        <option value="E">E</option>
+                        <option value="F">F</option>
+                        <option value="F#">F#/Gb</option>
+                        <option value="G">G</option>
+                        <option value="G#">G#/Ab</option>
+                        <option value="A">A</option>
+                        <option value="A#">A#/Bb</option>
+                        <option value="B">B</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="note4">Note 4</label>
+                    <select id="note4" class="note-select">
+                        <option value="">Select Note</option>
+                        <option value="C">C</option>
+                        <option value="C#">C#/Db</option>
+                        <option value="D">D</option>
+                        <option value="D#">D#/Eb</option>
+                        <option value="E">E</option>
+                        <option value="F">F</option>
+                        <option value="F#">F#/Gb</option>
+                        <option value="G">G</option>
+                        <option value="G#">G#/Ab</option>
+                        <option value="A">A</option>
+                        <option value="A#">A#/Bb</option>
+                        <option value="B">B</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="note5">Note 5</label>
+                    <select id="note5" class="note-select">
+                        <option value="">Select Note</option>
+                        <option value="C">C</option>
+                        <option value="C#">C#/Db</option>
+                        <option value="D">D</option>
+                        <option value="D#">D#/Eb</option>
+                        <option value="E">E</option>
+                        <option value="F">F</option>
+                        <option value="F#">F#/Gb</option>
+                        <option value="G">G</option>
+                        <option value="G#">G#/Ab</option>
+                        <option value="A">A</option>
+                        <option value="A#">A#/Bb</option>
+                        <option value="B">B</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="note6">Note 6</label>
+                    <select id="note6" class="note-select">
+                        <option value="">Select Note</option>
+                        <option value="C">C</option>
+                        <option value="C#">C#/Db</option>
+                        <option value="D">D</option>
+                        <option value="D#">D#/Eb</option>
+                        <option value="E">E</option>
+                        <option value="F">F</option>
+                        <option value="F#">F#/Gb</option>
+                        <option value="G">G</option>
+                        <option value="G#">G#/Ab</option>
+                        <option value="A">A</option>
+                        <option value="A#">A#/Bb</option>
+                        <option value="B">B</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="note7">Note 7</label>
+                    <select id="note7" class="note-select">
+                        <option value="">Select Note</option>
+                        <option value="C">C</option>
+                        <option value="C#">C#/Db</option>
+                        <option value="D">D</option>
+                        <option value="D#">D#/Eb</option>
+                        <option value="E">E</option>
+                        <option value="F">F</option>
+                        <option value="F#">F#/Gb</option>
+                        <option value="G">G</option>
+                        <option value="G#">G#/Ab</option>
+                        <option value="A">A</option>
+                        <option value="A#">A#/Bb</option>
+                        <option value="B">B</option>
+                    </select>
+                </div>
+            </div>
+            <button id="findScaleBtn" class="btn"><i class="fas fa-search"></i> Find Scale</button>
+        </div>
+
+        <div id="resultContainer" class="card" style="display: none;">
+            <h2>Scale Result</h2>
+            <div id="scaleResult" class="result">
+                <!-- Results will be displayed here -->
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Save This Scale</h2>
+            <div class="form-group">
+                <label for="songName">Song Name</label>
+                <input type="text" id="songName" placeholder="Enter song name (any language or numbers)">
+            </div>
+            <button id="saveSongBtn" class="btn btn-success"><i class="fas fa-save"></i> Save Song</button>
+            <div class="tooltip" style="margin-left: 10px;">
+                <i class="fas fa-info-circle" style="color: var(--primary); font-size: 20px;"></i>
+                <span class="tooltiptext">Save your song with the current scale to build your personal database</span>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <button id="viewSongsBtn" class="btn btn-secondary"><i class="fas fa-list"></i> View Saved Songs</button>
+            <button id="exportBtn" class="btn"><i class="fas fa-file-export"></i> Export to CSV</button>
+        </div>
+
+        <div id="savedSongsContainer" class="saved-songs" style="display: none;">
+            <div class="card">
+                <h2>Saved Songs</h2>
+                <div class="search-container">
+                    <input type="text" id="searchSong" placeholder="Search song name...">
+                    <button id="searchBtn" class="btn"><i class="fas fa-search"></i> Search</button>
+                </div>
+                <div class="form-group scale-filter">
+                    <label for="scaleFilter">Filter by Scale:</label>
+                    <select id="scaleFilter">
+                        <option value="">All Scales</option>
+                        <!-- Scale options will be populated dynamically -->
+                    </select>
+                </div>
+                <div id="savedSongsList">
+                    <!-- Saved songs will be displayed here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for song details -->
+    <div id="songModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2 id="modalTitle">Song Details</h2>
+            <div class="form-group">
+                <label for="editSongName">Song Name</label>
+                <input type="text" id="editSongName">
+            </div>
+            <div class="form-group">
+                <label>Scale</label>
+                <div id="modalScale" class="scale-name"></div>
+            </div>
+            <div class="action-buttons">
+                <button id="updateSongBtn" class="btn btn-success"><i class="fas fa-save"></i> Update</button>
+                <button id="deleteSongBtn" class="btn btn-danger"><i class="fas fa-trash"></i> Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Database of all diatonic scales and modes
+        const scaleDatabase = {
+            // Major scales (Ionian mode)
+            "C D E F G A B": "C Major (Ionian)",
+            "G A B C D E F#": "G Major (Ionian)",
+            "D E F# G A B C#": "D Major (Ionian)",
+            "A B C# D E F# G#": "A Major (Ionian)",
+            "E F# G# A B C# D#": "E Major (Ionian)",
+            "B C# D# E F# G# A#": "B Major (Ionian)",
+            "F# G# A# B C# D# E#": "F# Major (Ionian)",
+            "C# D# E# F# G# A# B#": "C# Major (Ionian)",
+            "F G A Bb C D E": "F Major (Ionian)",
+            "Bb C D Eb F G A": "Bb Major (Ionian)",
+            "Eb F G Ab Bb C D": "Eb Major (Ionian)",
+            "Ab Bb C Db Eb F G": "Ab Major (Ionian)",
+            "Db Eb F Gb Ab Bb C": "Db Major (Ionian)",
+            "Gb Ab Bb Cb Db Eb F": "Gb Major (Ionian)",
+            "Cb Db Eb Fb Gb Ab Bb": "Cb Major (Ionian)",
+            
+            // Natural Minor scales (Aeolian mode)
+            "A B C D E F G": "A Natural Minor (Aeolian)",
+            "E F# G A B C D": "E Natural Minor (Aeolian)",
+            "B C# D E F# G A": "B Natural Minor (Aeolian)",
+            "F# G# A B C# D E": "F# Natural Minor (Aeolian)",
+            "C# D# E F# G# A B": "C# Natural Minor (Aeolian)",
+            "G# A# B C# D# E F#": "G# Natural Minor (Aeolian)",
+            "D# E# F# G# A# B C#": "D# Natural Minor (Aeolian)",
+            "A# B# C# D# E# F# G#": "A# Natural Minor (Aeolian)",
+            "D E F G A Bb C": "D Natural Minor (Aeolian)",
+            "G A Bb C D Eb F": "G Natural Minor (Aeolian)",
+            "C D Eb F G Ab Bb": "C Natural Minor (Aeolian)",
+            "F G Ab Bb C Db Eb": "F Natural Minor (Aeolian)",
+            "Bb C Db Eb F Gb Ab": "Bb Natural Minor (Aeolian)",
+            "Eb F Gb Ab Bb Cb Db": "Eb Natural Minor (Aeolian)",
+            
+            // Harmonic Minor scales
+            "A B C D E F G#": "A Harmonic Minor",
+            "E F# G A B C D#": "E Harmonic Minor",
+            "B C# D E F# G A#": "B Harmonic Minor",
+            "F# G# A B C# D E#": "F# Harmonic Minor",
+            "C# D# E F# G# A B#": "C# Harmonic Minor",
+            "G# A# B C# D# E F##": "G# Harmonic Minor",
+            "D E F G A Bb C#": "D Harmonic Minor",
+            "G A Bb C D Eb F#": "G Harmonic Minor",
+            "C D Eb F G Ab B": "C Harmonic Minor",
+            "F G Ab Bb C Db E": "F Harmonic Minor",
+            "Bb C Db Eb F Gb A": "Bb Harmonic Minor",
+            
+            // Melodic Minor scales (ascending)
+            "A B C D E F# G#": "A Melodic Minor (Ascending)",
+            "E F# G A B C# D#": "E Melodic Minor (Ascending)",
+            "B C# D E F# G# A#": "B Melodic Minor (Ascending)",
+            "F# G# A B C# D# E#": "F# Melodic Minor (Ascending)",
+            "C# D# E F# G# A# B#": "C# Melodic Minor (Ascending)",
+            "D E F G A B C#": "D Melodic Minor (Ascending)",
+            "G A Bb C D E F#": "G Melodic Minor (Ascending)",
+            "C D Eb F G A B": "C Melodic Minor (Ascending)",
+            "F G Ab Bb C D E": "F Melodic Minor (Ascending)",
+            "Bb C Db Eb F G A": "Bb Melodic Minor (Ascending)",
+            
+            // Church Modes (relative to major scale)
+            // Dorian
+            "D E F G A B C": "D Dorian",
+            "G A Bb C D E F": "G Dorian",
+            "C D Eb F G A Bb": "C Dorian",
+            "F G Ab Bb C D Eb": "F Dorian",
+            "Bb C Db Eb F G Ab": "Bb Dorian",
+            "Eb F Gb Ab Bb C Db": "Eb Dorian",
+            "A B C D E F# G": "A Dorian",
+            "E F# G A B C# D": "E Dorian",
+            "B C# D E F# G# A": "B Dorian",
+            
+            // Phrygian
+            "E F G A B C D": "E Phrygian",
+            "A Bb C D E F G": "A Phrygian",
+            "D Eb F G A Bb C": "D Phrygian",
+            "G Ab Bb C D Eb F": "G Phrygian",
+            "C Db Eb F G Ab Bb": "C Phrygian",
+            "F Gb Ab Bb C Db Eb": "F Phrygian",
+            "B C D E F# G A": "B Phrygian",
+            "F# G A B C# D E": "F# Phrygian",
+            "C# D E F# G# A B": "C# Phrygian",
+            
+            // Lydian
+            "F G A B C D E": "F Lydian",
+            "Bb C D E F G A": "Bb Lydian",
+            "Eb F G A Bb C D": "Eb Lydian",
+            "Ab Bb C D Eb F G": "Ab Lydian",
+            "Db Eb F G Ab Bb C": "Db Lydian",
+            "Gb Ab Bb C Db Eb F": "Gb Lydian",
+            "C D E F# G A B": "C Lydian",
+            "G A B C# D E F#": "G Lydian",
+            "D E F# G# A B C#": "D Lydian",
+            
+            // Mixolydian
+            "G A B C D E F": "G Mixolydian",
+            "C D E F G A Bb": "C Mixolydian",
+            "F G A Bb C D Eb": "F Mixolydian",
+            "Bb C D Eb F G Ab": "Bb Mixolydian",
+            "Eb F G Ab Bb C Db": "Eb Mixolydian",
+            "Ab Bb C Db Eb F Gb": "Ab Mixolydian",
+            "D E F# G A B C": "D Mixolydian",
+            "A B C# D E F# G": "A Mixolydian",
+            "E F# G# A B C# D": "E Mixolydian",
+            
+            // Locrian
+            "B C D E F G A": "B Locrian",
+            "E F G A Bb C D": "E Locrian",
+            "A Bb C D Eb F G": "A Locrian",
+            "D Eb F G Ab Bb C": "D Locrian",
+            "G Ab Bb C Db Eb F": "G Locrian",
+            "C Db Eb F Gb Ab Bb": "C Locrian",
+            "F# G A B C D E": "F# Locrian",
+            "C# D E F# G A B": "C# Locrian",
+            "G# A B C# D E F#": "G# Locrian"
+        };
+
+        // Famous songs in different scales (for display purposes)
+        <!-- เพิ่มในส่วน <script> ภายใน famousSongsByScale object -->
+const famousSongsByScale = {
+    // เพิ่มเพลง Pop ฮิต 2023-2024
+    "C Major (Ionian)": [
+        "Flowers - Miley Cyrus",
+        "Cruel Summer - Taylor Swift",
+        "What Was I Made For? - Billie Eilish",
+        "As It Was - Harry Styles",
+        "Levitating - Dua Lipa"
+    ],
+    "A Natural Minor (Aeolian)": [
+        "Kill Bill - SZA",
+        "Creepin' - Metro Boomin, The Weeknd, 21 Savage",
+        "Unholy - Sam Smith & Kim Petras",
+        "Anti-Hero - Taylor Swift",
+        "Die For You - The Weeknd"
+    ],
+    "G Major (Ionian)": [
+        "Dance The Night - Dua Lipa",
+        "Blinding Lights - The Weeknd",
+        "Stay - The Kid LAROI & Justin Bieber",
+        "Shivers - Ed Sheeran",
+        "Watermelon Sugar - Harry Styles"
+    ],
+    "E Natural Minor (Aeolian)": [
+        "Save Your Tears - The Weeknd & Ariana Grande",
+        "Bad Habit - Steve Lacy",
+        "Circles - Post Malone",
+        "Don't Start Now - Dua Lipa",
+        "Good 4 U - Olivia Rodrigo"
+    ],
+    "F Major (Ionian)": [
+        "Perfect - Ed Sheeran",
+        "Shape of You - Ed Sheeran",
+        "Thinking Out Loud - Ed Sheeran",
+        "All of Me - John Legend",
+        "Say You Won't Let Go - James Arthur"
+    ],
+    // ... (คงข้อมูลเดิมไว้)
+};
+
+        // Function to identify any diatonic scale
+        function identifyScale(notes) {
+            const scaleKey = notes.join(' ');
+            
+            // First check if it's a known scale in our database
+            if (scaleDatabase[scaleKey]) {
+                return {
+                    name: scaleDatabase[scaleKey],
+                    famousSongs: famousSongsByScale[scaleDatabase[scaleKey]] || []
+                };
+            }
+            
+            // If not found, try to identify the scale pattern
+            const noteOrder = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+            const uniqueNotes = [...new Set(notes)]; // Remove duplicates
+            const rootNote = uniqueNotes[0];
+            
+            // Get the intervals between notes
+            const intervals = [];
+            for (let i = 1; i < uniqueNotes.length; i++) {
+                const prevIndex = noteOrder.indexOf(uniqueNotes[i-1]);
+                const currentIndex = noteOrder.indexOf(uniqueNotes[i]);
+                let interval = currentIndex - prevIndex;
+                if (interval < 0) interval += 12; // Wrap around
+                intervals.push(interval);
+            }
+            
+            // Check for common scale patterns
+            const intervalPattern = intervals.join(',');
+            
+            // Major scale pattern (W-W-H-W-W-W-H)
+            if (intervalPattern === '2,2,1,2,2,2,1') {
+                return {
+                    name: `${rootNote} Major (Ionian)`,
+                    famousSongs: famousSongsByScale["C Major (Ionian)"] || []
+                };
+            }
+            
+            // Natural Minor scale pattern (W-H-W-W-H-W-W)
+            if (intervalPattern === '2,1,2,2,1,2,2') {
+                return {
+                    name: `${rootNote} Natural Minor (Aeolian)`,
+                    famousSongs: famousSongsByScale["A Natural Minor (Aeolian)"] || []
+                };
+            }
+            
+            // Harmonic Minor scale pattern (W-H-W-W-H-WH-H)
+            if (intervalPattern === '2,1,2,2,1,3,1') {
+                return {
+                    name: `${rootNote} Harmonic Minor`,
+                    famousSongs: famousSongsByScale["A Harmonic Minor"] || []
+                };
+            }
+            
+            // Melodic Minor scale pattern (W-H-W-W-W-W-H)
+            if (intervalPattern === '2,1,2,2,2,2,1') {
+                return {
+                    name: `${rootNote} Melodic Minor (Ascending)`,
+                    famousSongs: famousSongsByScale["A Melodic Minor (Ascending)"] || []
+                };
+            }
+            
+            // Dorian mode pattern (W-H-W-W-W-H-W)
+            if (intervalPattern === '2,1,2,2,2,1,2') {
+                return {
+                    name: `${rootNote} Dorian`,
+                    famousSongs: famousSongsByScale["D Dorian"] || []
+                };
+            }
+            
+            // Phrygian mode pattern (H-W-W-W-H-W-W)
+            if (intervalPattern === '1,2,2,2,1,2,2') {
+                return {
+                    name: `${rootNote} Phrygian`,
+                    famousSongs: famousSongsByScale["E Phrygian"] || []
+                };
+            }
+            
+            // Lydian mode pattern (W-W-W-H-W-W-H)
+            if (intervalPattern === '2,2,2,1,2,2,1') {
+                return {
+                    name: `${rootNote} Lydian`,
+                    famousSongs: famousSongsByScale["F Lydian"] || []
+                };
+            }
+            
+            // Mixolydian mode pattern (W-W-H-W-W-H-W)
+            if (intervalPattern === '2,2,1,2,2,1,2') {
+                return {
+                    name: `${rootNote} Mixolydian`,
+                    famousSongs: famousSongsByScale["G Mixolydian"] || []
+                };
+            }
+            
+            // Locrian mode pattern (H-W-W-H-W-W-W)
+            if (intervalPattern === '1,2,2,1,2,2,2') {
+                return {
+                    name: `${rootNote} Locrian`,
+                    famousSongs: famousSongsByScale["B Locrian"] || []
+                };
+            }
+            
+            // If no known pattern matches
+            return {
+                name: "Unknown Scale (Not a standard diatonic scale)",
+                famousSongs: []
+            };
+        }
+
+        // Local storage for user's saved songs
+        let savedSongs = JSON.parse(localStorage.getItem('savedSongs')) || [];
+
+        // DOM elements
+        const noteSelects = document.querySelectorAll('.note-select');
+        const findScaleBtn = document.getElementById('findScaleBtn');
+        const resultContainer = document.getElementById('resultContainer');
+        const scaleResult = document.getElementById('scaleResult');
+        const songNameInput = document.getElementById('songName');
+        const saveSongBtn = document.getElementById('saveSongBtn');
+        const viewSongsBtn = document.getElementById('viewSongsBtn');
+        const savedSongsContainer = document.getElementById('savedSongsContainer');
+        const savedSongsList = document.getElementById('savedSongsList');
+        const searchSongInput = document.getElementById('searchSong');
+        const searchBtn = document.getElementById('searchBtn');
+        const scaleFilter = document.getElementById('scaleFilter');
+        const songModal = document.getElementById('songModal');
+        const closeModal = document.querySelector('.close-modal');
+        const modalTitle = document.getElementById('modalTitle');
+        const editSongName = document.getElementById('editSongName');
+        const modalScale = document.getElementById('modalScale');
+        const updateSongBtn = document.getElementById('updateSongBtn');
+        const deleteSongBtn = document.getElementById('deleteSongBtn');
+        const exportBtn = document.getElementById('exportBtn');
+
+        // Current scale variables
+        let currentScale = null;
+        let currentScaleName = null;
+        let currentEditingId = null;
+
+        // Initialize the scale filter dropdown
+        function initScaleFilter() {
+            scaleFilter.innerHTML = '<option value="">All Scales</option>';
+            const uniqueScales = new Set();
+            
+            savedSongs.forEach(song => {
+                uniqueScales.add(song.scaleName);
+            });
+            
+            Array.from(uniqueScales).sort().forEach(scale => {
+                const option = document.createElement('option');
+                option.value = scale;
+                option.textContent = scale;
+                scaleFilter.appendChild(option);
+            });
+        }
+
+        // Find scale function
+        function findScale() {
+            const notes = [];
+            let isValid = true;
+            
+            noteSelects.forEach((select, index) => {
+                if (select.value === '') {
+                    isValid = false;
+                    select.style.borderColor = 'red';
+                } else {
+                    select.style.borderColor = '';
+                    notes.push(select.value);
+                }
+            });
+            
+            if (!isValid) {
+                alert('Please select all 7 notes');
+                return;
+            }
+            
+            const scaleInfo = identifyScale(notes);
+            currentScale = notes;
+            currentScaleName = scaleInfo.name;
+            
+            displayScaleResult(notes.join(' '), scaleInfo.name, scaleInfo.famousSongs);
+        }
+
+        // Display scale result
+        function displayScaleResult(scaleKey, scaleName, famousSongs) {
+            resultContainer.style.display = 'block';
+            
+            let html = `
+                <div class="scale-name">${scaleName}</div>
+                <p><strong>Notes:</strong> ${scaleKey.replace(/ /g, ', ')}</p>
+            `;
+            
+            if (famousSongs.length > 0) {
+                html += `
+                    <div class="famous-songs">
+                        <h3>Famous Songs in This Scale:</h3>
+                        <ul class="song-list">
+                            ${famousSongs.map(song => `<li>${song}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            } else {
+                html += `<p>No famous songs found for this scale in our database.</p>`;
+            }
+            
+            scaleResult.innerHTML = html;
+            
+            // Scroll to result
+            resultContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Save song function
+        function saveSong() {
+            if (!currentScale || !currentScaleName) {
+                alert('Please find a scale first');
+                return;
+            }
+            
+            const songName = songNameInput.value.trim();
+            if (!songName) {
+                alert('Please enter a song name');
+                return;
+            }
+            
+            const newSong = {
+                id: Date.now(),
+                name: songName,
+                scale: currentScale.join(' '),
+                scaleName: currentScaleName,
+                createdAt: new Date().toISOString()
+            };
+            
+            savedSongs.push(newSong);
+            localStorage.setItem('savedSongs', JSON.stringify(savedSongs));
+            
+            songNameInput.value = '';
+            alert('Song saved successfully!');
+            
+            // Update the scale filter if it's visible
+            if (savedSongsContainer.style.display === 'block') {
+                renderSavedSongs();
+                initScaleFilter();
+            }
+        }
+
+        // Render saved songs
+        function renderSavedSongs(filter = '', scaleFilterValue = '') {
+            let filteredSongs = [...savedSongs];
+            
+            if (filter) {
+                const searchTerm = filter.toLowerCase();
+                filteredSongs = filteredSongs.filter(song => 
+                    song.name.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            if (scaleFilterValue) {
+                filteredSongs = filteredSongs.filter(song => 
+                    song.scaleName === scaleFilterValue
+                );
+            }
+            
+            if (filteredSongs.length === 0) {
+                savedSongsList.innerHTML = '<p>No songs found matching your criteria.</p>';
+                return;
+            }
+            
+            savedSongsList.innerHTML = `
+                <ul class="song-list">
+                    ${filteredSongs.map(song => `
+                        <li data-id="${song.id}">
+                            <div>
+                                <strong>${song.name}</strong><br>
+                                <small>${song.scaleName}</small>
+                            </div>
+                            <div class="song-actions">
+                                <button class="btn btn-secondary edit-song" data-id="${song.id}">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <button class="btn btn-danger delete-song" data-id="${song.id}">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </div>
+                        </li>
+                    `).join('')}
+                </ul>
+            `;
+            
+            // Add event listeners to edit and delete buttons
+            document.querySelectorAll('.edit-song').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = parseInt(e.target.getAttribute('data-id') || e.target.parentElement.getAttribute('data-id'));
+                    openEditModal(id);
+                });
+            });
+            
+            document.querySelectorAll('.delete-song').forEach(btn => {
+  btn.addEventListener('click', function(e) {
+    const songId = parseInt(this.getAttribute('data-id'));
+    if (confirm('Delete this song?')) {
+      deleteSong(songId);
+    }
+  });
+});
+
+// ฟังก์ชัน deleteSong ที่อัปเดต
+function deleteSong(id) {
+  savedSongs = savedSongs.filter(song => song.id !== id);
+  localStorage.setItem('savedSongs', JSON.stringify(savedSongs));
+  renderSavedSongs();
+}
+
+// ในส่วน Modal
+deleteSongBtn.addEventListener('click', () => {
+  if (currentEditingId) {
+    deleteSong(currentEditingId);
+    closeModalFunc();
+  }
+});
+        }
+
+        // Open edit modal
+        function openEditModal(id) {
+            const song = savedSongs.find(s => s.id === id);
+            if (!song) return;
+            
+            currentEditingId = id;
+            modalTitle.textContent = `Edit: ${song.name}`;
+            editSongName.value = song.name;
+            modalScale.textContent = song.scaleName;
+            
+            songModal.style.display = 'flex';
+        }
+
+        // Close modal
+        function closeModalFunc() {
+            songModal.style.display = 'none';
+            currentEditingId = null;
+        }
+
+        // Update song
+        function updateSong() {
+            const newName = editSongName.value.trim();
+            if (!newName) {
+                alert('Please enter a song name');
+                return;
+            }
+            
+            const index = savedSongs.findIndex(s => s.id === currentEditingId);
+            if (index !== -1) {
+                savedSongs[index].name = newName;
+                localStorage.setItem('savedSongs', JSON.stringify(savedSongs));
+                renderSavedSongs(searchSongInput.value, scaleFilter.value);
+                closeModalFunc();
+            }
+        }
+
+        // Delete song
+        function deleteSong(id) {
+  // แปลง id เป็น number (ป้องกันกรณีได้ string)
+  id = parseInt(id);
+  
+  // ใช้ filter เพื่อคัดเพลงที่ไม่ตรงกับ id ออก
+  savedSongs = savedSongs.filter(song => song.id !== id);
+  
+  // อัพเดท localStorage
+  localStorage.setItem('savedSongs', JSON.stringify(savedSongs));
+  
+  // รีเรนเดอร์ลิสต์ใหม่
+  renderSavedSongs(searchSongInput.value, scaleFilter.value);
+  
+  // อัพเดทตัวเลือกใน scaleFilter
+  initScaleFilter();
+}
+function deleteSong(id) {
+  console.log('Deleting song with ID:', id, 'Type:', typeof id);
+  console.log('Before deletion:', savedSongs);
+  
+  savedSongs = savedSongs.filter(song => {
+    console.log('Checking song:', song.id, 'Type:', typeof song.id);
+    return song.id !== id;
+  });
+  
+  console.log('After deletion:', savedSongs);
+  // ... ส่วนที่เหลือเหมือนเดิม ...
+}
+
+        // Export to CSV
+        function exportToCSV() {
+            if (savedSongs.length === 0) {
+                alert('No songs to export');
+                return;
+            }
+            
+            // CSV header
+            let csv = 'Song Name,Scale,Scale Notes,Date Saved\n';
+            
+            // Add each song as a row
+            savedSongs.forEach(song => {
+                csv += `"${song.name}","${song.scaleName}","${song.scale}","${new Date(song.createdAt).toLocaleDateString()}"\n`;
+            });
+            
+            // Create download link
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'music_scale_songs.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Event listeners
+        findScaleBtn.addEventListener('click', findScale);
+        saveSongBtn.addEventListener('click', saveSong);
+        
+        viewSongsBtn.addEventListener('click', () => {
+            savedSongsContainer.style.display = savedSongsContainer.style.display === 'block' ? 'none' : 'block';
+            if (savedSongsContainer.style.display === 'block') {
+                renderSavedSongs();
+                initScaleFilter();
+            }
+        });
+        
+        searchBtn.addEventListener('click', () => {
+            renderSavedSongs(searchSongInput.value, scaleFilter.value);
+        });
+        
+        searchSongInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') {
+                renderSavedSongs(searchSongInput.value, scaleFilter.value);
+            }
+        });
+        
+        scaleFilter.addEventListener('change', () => {
+            renderSavedSongs(searchSongInput.value, scaleFilter.value);
+        });
+        
+        closeModal.addEventListener('click', closeModalFunc);
+        window.addEventListener('click', (e) => {
+            if (e.target === songModal) {
+                closeModalFunc();
+            }
+        });
+        
+        updateSongBtn.addEventListener('click', updateSong);
+        deleteSongBtn.addEventListener('click', () => {
+  if (currentEditingId && confirm('Are you sure you want to delete this song?')) {
+    deleteSong(currentEditingId);
+    closeModalFunc(); // ปิด Modal หลังลบ
+  }
+});
+        
+        exportBtn.addEventListener('click', exportToCSV);
+
+        // Initialize with some example data if empty
+        if (savedSongs.length === 0) {
+    savedSongs = [
+        {
+            id: 1,
+        name: "Flowers - Miley Cyrus",
+        scale: "C D E F G A B",
+        scaleName: "C Major (Ionian)",
+        createdAt: new Date().toISOString()
+        },
+        {
+            id: 2,
+        name: "Kill Bill - SZA",
+        scale: "A B C D E F G",
+        scaleName: "A Natural Minor (Aeolian)",
+        createdAt: new Date().toISOString()
+        },
+        {
+            id: 3,
+            name: "Dynamite - BTS",
+            scale: "G A B C D E F#",
+            scaleName: "G Major (Ionian)",
+            createdAt: new Date().toISOString()
+        },
+        {
+            id: 4,
+            name: "How You Like That - BLACKPINK",
+            scale: "A B C# D E F# G",
+            scaleName: "A Natural Minor (Aeolian)",
+            createdAt: new Date().toISOString()
+        },
+        {
+            id: 5,
+            name: "Love Scenario - iKON",
+            scale: "F G A Bb C D E",
+            scaleName: "F Major (Ionian)",
+            createdAt: new Date().toISOString()
+        }
+    ];
+    localStorage.setItem('savedSongs', JSON.stringify(savedSongs));
+}
+    </script>
+    <!-- เพิ่มก่อนปิดแท็ก </body> -->
+<footer style="
+text-align: center;
+padding: 20px;
+margin-top: 40px;
+color: var(--primary);
+font-family: 'Montserrat', sans-serif;
+border-top: 1px solid rgba(0, 168, 255, 0.3);
+background: linear-gradient(90deg, rgba(0,0,20,0) 0%, rgba(0,20,40,0.2) 50%, rgba(0,0,20,0) 100%);
+">
+<p style="margin: 0; font-size: 0.9rem;">
+    Designed & Developed by <strong>Highhat Entertainment Team</strong><br>
+    Thank you for using our platform. We hope it inspires your musical creativity!
+</footer>
+</p>
+</footer>
+
+<footer style="
+    text-align: center;
+    padding: 25px 0;
+    margin-top: 50px;
+    color: var(--gray);
+    font-family: 'Open Sans', sans-serif;
+    border-top: 1px solid var(--primary-dark);
+    background: var(--darker);
+">
+    <p style="margin: 0 0 15px 0; font-size: 0.9rem;">
+        Designed & Developed by <strong>Highhat Entertainment</strong>
+    </p>
+    
+    <div style="margin: 0 auto 15px auto; display: flex; justify-content: center; gap: 20px; max-width: 300px;">
+        <a href="https://www.youtube.com/@HighhatMusicOfficial" target="_blank" style="color: var(--gray); text-decoration: none; transition: all 0.3s ease;">
+            <i class="fab fa-youtube" style="font-size: 1.2rem;"></i>
+        </a>
+        <a href="https://www.facebook.com/highhat.Official/" target="_blank" style="color: var(--gray); text-decoration: none; transition: all 0.3s ease;">
+            <i class="fab fa-facebook" style="font-size: 1.2rem;"></i>
+        </a>
+        <a href="https://www.instagram.com/highhat.official" target="_blank" style="color: var(--gray); text-decoration: none; transition: all 0.3s ease;">
+            <i class="fab fa-instagram" style="font-size: 1.2rem;"></i>
+        </a>
+        <a href="https://www.tiktok.com/@highhat.music" target="_blank" style="color: var(--gray); text-decoration: none; transition: all 0.3s ease;">
+            <i class="fab fa-tiktok" style="font-size: 1.2rem;"></i>
+        </a>
+    </div>
+    
+    <p style="margin: 0; font-size: 0.8rem;">
+        Thank you for using our platform. We hope it inspires your musical creativity.
+    </p>
+</footer>
+</body>
+</html>
